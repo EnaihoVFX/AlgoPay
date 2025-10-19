@@ -57,7 +57,7 @@
 
 ## 🎥 Demo Video
 
-> **[Watch Full Demo Video Here](https://youtu.be/YOUR_VIDEO_ID)**
+> **[Watch Full Demo Video Here](https://youtu.be/Sc37FqtNs60)**
 
 *5-minute demonstration showing:*
 - User onboarding and wallet funding
