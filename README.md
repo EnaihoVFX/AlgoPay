@@ -1,11 +1,10 @@
-# 🎫 StickerPay - Blockchain Marketplace Payment System
+# AlgoPay — accessible programmable QR payments & NFT drops (README)
 
 [![Algorand](https://img.shields.io/badge/Algorand-TestNet-blue)](https://testnet.algoexplorer.io/)
 [![Node](https://img.shields.io/badge/Node-16+-green)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-19-blue)](https://reactjs.org/)
 [![PyTeal](https://img.shields.io/badge/PyTeal-0.27-purple)](https://pyteal.readthedocs.io/)
 
-AlgoPay — accessible programmable QR payments & NFT drops (README)
 
 Tagline: Algorand-native QR payments that feel like a wallet — accessible, composable, and agency-enabled.
 
