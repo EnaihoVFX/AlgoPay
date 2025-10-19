@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Send, Download, ScanLine, PlusCircle, Eye, EyeOff, Copy, ExternalLink, ArrowDownUp, ShoppingCart, Repeat, TrendingUp, TrendingDown } from 'lucide-react';
@@ -54,8 +55,9 @@ function HomePage() {
   const [nftScrollPosition, setNftScrollPosition] = useState(0);
   const userId = 'testuser1';
   
-  // Get wallet address from localStorage or use default pooled address
-  const WALLET_ADDRESS = localStorage.getItem('algoPayAddress') || 'W4DVLNHVUEQK2GZKYLAVCTZFWHQE26WCPAIUJ55CXTTPEVHEWWTOTTREBE';
+  // TEMPORARILY: Always use pooled wallet (has the NFTs and funds)
+  // In production, use: localStorage.getItem('algoPayAddress') || pooled address
+  const WALLET_ADDRESS = 'W4DVLNHVUEQK2GZKYLAVCTZFWHQE26WCPAIUJ55CXTTPEVHEWWTOTTREBE';
 
   useEffect(() => {
     // Check if user has completed onboarding
@@ -154,13 +156,20 @@ function HomePage() {
           if (accountInfo.assets && accountInfo.assets.length > 0) {
             const nftPromises = accountInfo.assets.map(async (asset) => {
               try {
-                const assetInfo = await algodClient.getAssetByID(asset['asset-id']).do();
+                const assetId = asset['asset-id'] || asset.assetId || asset['assetId'];
+                
+                if (!assetId) {
+                  console.error('Asset ID not found:', asset);
+                  return null;
+                }
+                
+                const assetInfo = await algodClient.getAssetByID(assetId).do();
                 // Handle BigInt for asset amounts
                 const assetAmount = typeof asset.amount === 'bigint' ? Number(asset.amount) : asset.amount;
                 return {
-                  id: asset['asset-id'],
+                  id: assetId,
                   amount: assetAmount,
-                  name: assetInfo.params.name || `Asset #${asset['asset-id']}`,
+                  name: assetInfo.params.name || `Asset #${assetId}`,
                   unitName: assetInfo.params['unit-name'] || 'NFT',
                   url: assetInfo.params.url || null,
                   decimals: assetInfo.params.decimals || 0
@@ -232,19 +241,29 @@ function HomePage() {
             amount: accountInfo.amount,
             assetsCount: accountInfo.assets?.length || 0,
             hasAssets: !!accountInfo.assets,
-            assets: accountInfo.assets
+            firstAsset: accountInfo.assets?.[0],
+            assetsKeys: accountInfo.assets?.[0] ? Object.keys(accountInfo.assets[0]) : []
           });
           console.log('Pooled wallet NFT fetch - assets found:', accountInfo.assets?.length || 0);
           
           if (accountInfo.assets && accountInfo.assets.length > 0) {
             const nftPromises = accountInfo.assets.map(async (asset) => {
               try {
-                console.log('Fetching asset info for:', asset['asset-id']);
-                const assetInfo = await algodClient.getAssetByID(asset['asset-id']).do();
+                console.log('Raw asset object:', asset);
+                console.log('Asset keys:', Object.keys(asset));
+                const assetId = asset['asset-id'] || asset.assetId || asset['assetId'];
+                console.log('Fetching asset info for:', assetId);
+                
+                if (!assetId) {
+                  console.error('Asset ID not found in asset object:', asset);
+                  return null;
+                }
+                
+                const assetInfo = await algodClient.getAssetByID(assetId).do();
                 // Handle BigInt for asset amounts
                 const assetAmount = typeof asset.amount === 'bigint' ? Number(asset.amount) : asset.amount;
                 const nftData = {
-                  id: asset['asset-id'],
+                  id: assetId,
                   amount: assetAmount,
                   name: assetInfo.params.name || `Asset #${asset['asset-id']}`,
                   unitName: assetInfo.params['unit-name'] || 'NFT',
@@ -450,7 +469,7 @@ function HomePage() {
         }
       `}</style>
 
-      <div className="px-5 pb-28 max-w-lg mx-auto relative z-10">
+      <div className="px-5 pb-24 max-w-lg mx-auto relative z-10">
       {/* Header */}
         <div className="pt-6 pb-3 flex items-center justify-between fade-in">
           <div className="flex items-center gap-2">
@@ -719,35 +738,62 @@ function HomePage() {
 
           {/* NFT Carousel */}
           {nfts.length > 0 && (
-            <div className="mt-6">
+            <div className="mt-6 slide-up" style={{ animationDelay: '0.25s' }}>
               <div className="flex items-center justify-between mb-3 px-1">
-                <h3 className="text-sm font-medium text-blue-300/80">NFTs</h3>
-                <span className="text-xs text-blue-400/50">{nfts.length} collectibles</span>
+                <h3 className="text-sm font-medium text-blue-300/80">Collectibles</h3>
+                <span className="text-xs text-blue-400/50">{nfts.length} items</span>
               </div>
               
               <div className="relative">
-                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollBehavior: 'smooth' }}>
-                  {nfts.map((nft) => (
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory" style={{ scrollBehavior: 'smooth' }}>
+                  {nfts.map((nft, index) => (
                     <Link 
                       key={nft.id} 
                       to={`/asset/nft-${nft.id}`}
-                      className="flex-shrink-0"
+                      className="flex-shrink-0 snap-start"
                     >
-                      <div className="w-32 glass glass-hover rounded-xl p-3 transition-all hover:scale-105 active:scale-95">
-                        <div className="w-full aspect-square rounded-lg mb-2 overflow-hidden bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
+                      <div className="nft-card w-40 glass glass-hover rounded-xl overflow-hidden transition-all active:scale-95 group" style={{
+                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+                        padding: '4px'
+                      }}>
+                        {/* NFT Image */}
+                        <div className="relative w-full aspect-square overflow-hidden bg-gradient-to-br from-blue-500/20 to-indigo-600/30 rounded-lg">
                           {nft.url ? (
-                            <img 
-                              src={nft.url} 
-                              alt={nft.name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => e.target.style.display = 'none'}
-                            />
+                            <>
+                              <img 
+                                src={nft.url} 
+                                alt={nft.name}
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.nextElementSibling.style.display = 'flex';
+                                }}
+                              />
+                              <div style={{ display: 'none' }} className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-500/20 to-indigo-600/30">
+                                <span className="text-3xl">🖼️</span>
+                              </div>
+                            </>
                           ) : (
-                            <span className="text-3xl">🖼️</span>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-3xl">🖼️</span>
+                            </div>
                           )}
                         </div>
-                        <div className="text-xs font-medium text-white truncate">{nft.name}</div>
-                        <div className="text-[10px] text-blue-300/60">{nft.unitName}</div>
+                        
+                        {/* NFT Info */}
+                        <div className="px-2 py-2">
+                          <div className="text-[11px] font-medium text-white truncate mb-0.5">
+                            {nft.name}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] text-blue-300/60">{nft.unitName}</span>
+                            {nft.amount > 1 && (
+                              <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-blue-500/30 text-blue-200 font-semibold">
+                                ×{nft.amount}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </Link>
                   ))}

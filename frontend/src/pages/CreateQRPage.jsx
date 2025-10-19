@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import './CreateQRPage.css';
+import { ArrowLeft, MapPin, Clock, Image as ImageIcon, Download, Printer, Sparkles } from 'lucide-react';
 
 const CreateQRPage = () => {
   const [formData, setFormData] = useState({
@@ -225,54 +225,236 @@ const CreateQRPage = () => {
   };
 
   return (
-    <div className="create-qr-page">
-      <div className="create-qr-container">
-        <header className="page-header">
-          <h1>Create Payment QR Code</h1>
-          <p>Generate custom QR codes with conditions for AlgoPay payments</p>
-        </header>
+    <div className="min-h-screen text-white relative overflow-hidden" style={{
+      background: 'radial-gradient(ellipse at top, #0f1729 0%, #000000 50%, #000000 100%)'
+    }}>
+      {/* Ambient Background Elements */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-900/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/4 right-1/4 w-80 h-80 bg-indigo-900/15 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-slate-900/20 rounded-full blur-3xl"></div>
+      </div>
 
-        <div className="content-grid">
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+
+        .glass {
+          background: linear-gradient(135deg, rgba(30, 58, 138, 0.15), rgba(15, 23, 42, 0.3));
+          backdrop-filter: blur(30px);
+          border: 1px solid rgba(59, 130, 246, 0.15);
+          box-shadow: 
+            0 8px 32px 0 rgba(0, 0, 0, 0.37),
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-strong {
+          background: linear-gradient(135deg, rgba(30, 58, 138, 0.2), rgba(15, 23, 42, 0.4));
+          backdrop-filter: blur(40px);
+          border: 1px solid rgba(59, 130, 246, 0.2);
+          box-shadow: 
+            0 12px 40px 0 rgba(0, 0, 0, 0.45),
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-hover:hover {
+          background: linear-gradient(135deg, rgba(30, 58, 138, 0.25), rgba(15, 23, 42, 0.45));
+          border-color: rgba(59, 130, 246, 0.3);
+          box-shadow: 
+            0 16px 48px 0 rgba(0, 0, 0, 0.5),
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .fade-in {
+          animation: fadeIn 0.5s ease-out;
+        }
+
+        .slide-up {
+          animation: slideUp 0.6s ease-out;
+        }
+
+        .pulse-animation {
+          animation: pulse 2s ease-in-out infinite;
+        }
+
+        .glass-input {
+          background: linear-gradient(135deg, rgba(30, 58, 138, 0.1), rgba(15, 23, 42, 0.2));
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(59, 130, 246, 0.2);
+          color: white;
+          width: 100%;
+          padding: 0.75rem;
+          border-radius: 0.75rem;
+          outline: none;
+          transition: all 0.3s ease;
+        }
+
+        .glass-input:focus {
+          border-color: rgba(59, 130, 246, 0.4);
+          background: linear-gradient(135deg, rgba(30, 58, 138, 0.15), rgba(15, 23, 42, 0.25));
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .glass-input::placeholder {
+          color: rgba(147, 197, 253, 0.4);
+        }
+
+        .glass-select {
+          background: linear-gradient(135deg, rgba(30, 58, 138, 0.1), rgba(15, 23, 42, 0.2));
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(59, 130, 246, 0.2);
+          color: white;
+          width: 100%;
+          padding: 0.75rem;
+          border-radius: 0.75rem;
+          outline: none;
+          transition: all 0.3s ease;
+        }
+
+        .glass-select:focus {
+          border-color: rgba(59, 130, 246, 0.4);
+          background: linear-gradient(135deg, rgba(30, 58, 138, 0.15), rgba(15, 23, 42, 0.25));
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .glass-select option {
+          background: #0f172a;
+          color: white;
+        }
+
+        .glass-textarea {
+          background: linear-gradient(135deg, rgba(30, 58, 138, 0.1), rgba(15, 23, 42, 0.2));
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(59, 130, 246, 0.2);
+          color: white;
+          width: 100%;
+          padding: 0.75rem;
+          border-radius: 0.75rem;
+          outline: none;
+          transition: all 0.3s ease;
+          resize: vertical;
+        }
+
+        .glass-textarea:focus {
+          border-color: rgba(59, 130, 246, 0.4);
+          background: linear-gradient(135deg, rgba(30, 58, 138, 0.15), rgba(15, 23, 42, 0.25));
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .glass-textarea::placeholder {
+          color: rgba(147, 197, 253, 0.4);
+        }
+
+        .checkbox-custom {
+          appearance: none;
+          width: 1.25rem;
+          height: 1.25rem;
+          border: 2px solid rgba(59, 130, 246, 0.3);
+          border-radius: 0.375rem;
+          background: linear-gradient(135deg, rgba(30, 58, 138, 0.1), rgba(15, 23, 42, 0.2));
+          cursor: pointer;
+          position: relative;
+          transition: all 0.3s ease;
+        }
+
+        .checkbox-custom:checked {
+          background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+          border-color: #3b82f6;
+        }
+
+        .checkbox-custom:checked::after {
+          content: '';
+          position: absolute;
+          left: 0.25rem;
+          top: 0.125rem;
+          width: 0.375rem;
+          height: 0.625rem;
+          border: solid white;
+          border-width: 0 2px 2px 0;
+          transform: rotate(45deg);
+        }
+      `}</style>
+
+      <div className="px-5 pb-24 max-w-7xl mx-auto relative z-10">
+        {/* Header */}
+        <div className="pt-6 pb-6 flex items-center justify-between fade-in">
+          <button 
+            onClick={() => window.history.back()}
+            className="w-10 h-10 glass glass-hover rounded-xl flex items-center justify-center transition-all active:scale-95"
+          >
+            <ArrowLeft size={20} className="text-blue-200" />
+          </button>
+          <h1 className="text-xl font-semibold text-white">Create QR Code</h1>
+          <div className="w-10"></div>
+        </div>
+
+        {/* Hero Section */}
+        <div className="text-center mb-8 slide-up">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Sparkles size={24} className="text-blue-400" />
+            <h2 className="text-2xl font-bold text-white">
+              Generate Payment QR
+            </h2>
+          </div>
+          <p className="text-sm text-blue-200/60">
+            Create custom QR codes with advanced conditions
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-6">
           {/* Form Section */}
-          <div className="form-section">
-            <form onSubmit={generateQRCode}>
+          <div className="space-y-4 slide-up" style={{ animationDelay: '0.1s' }}>
+            <form onSubmit={generateQRCode} className="space-y-4">
               {/* Basic Info */}
-              <div className="form-group">
-                <h3>Basic Information</h3>
+              <div className="glass-strong rounded-2xl p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Basic Information</h3>
                 
-                <div className="input-group">
-                  <label htmlFor="qrName">QR Code Name *</label>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm text-blue-200/70 mb-2">QR Code Name *</label>
                   <input
                     type="text"
-                    id="qrName"
                     name="qrName"
                     value={formData.qrName}
                     onChange={handleChange}
                     placeholder="e.g., Coffee Shop Payment"
+                      className="glass-input"
                     required
                   />
                 </div>
 
-                <div className="input-group">
-                  <label htmlFor="listingID">Listing ID *</label>
+                  <div>
+                    <label className="block text-sm text-blue-200/70 mb-2">Listing ID *</label>
                   <input
                     type="text"
-                    id="listingID"
                     name="listingID"
                     value={formData.listingID}
                     onChange={handleChange}
                     placeholder="e.g., demo1"
+                      className="glass-input"
                     required
                   />
                 </div>
 
-                <div className="input-group">
-                  <label htmlFor="transactionType">Transaction Type *</label>
+                  <div>
+                    <label className="block text-sm text-blue-200/70 mb-2">Transaction Type *</label>
                   <select
-                    id="transactionType"
                     name="transactionType"
                     value={formData.transactionType}
                     onChange={handleChange}
+                      className="glass-select"
                     required
                   >
                     <option value="payment">Payment</option>
@@ -283,201 +465,236 @@ const CreateQRPage = () => {
                   </select>
                 </div>
 
-                <div className="input-group">
-                  <label htmlFor="amount">Amount (microAlgos)</label>
+                  <div>
+                    <label className="block text-sm text-blue-200/70 mb-2">Amount (microAlgos)</label>
                   <input
                     type="number"
-                    id="amount"
                     name="amount"
                     value={formData.amount}
                     onChange={handleChange}
                     placeholder="e.g., 1000000 (1 ALGO)"
                     min="0"
+                      className="glass-input"
                   />
                   {formData.amount && (
-                    <small className="helper-text">
+                      <p className="text-xs text-blue-300/60 mt-2">
                       ≈ {(parseInt(formData.amount) / 1000000).toFixed(6)} ALGO
-                    </small>
+                      </p>
                   )}
                 </div>
 
-                <div className="input-group">
-                  <label htmlFor="description">Description</label>
+                  <div>
+                    <label className="block text-sm text-blue-200/70 mb-2">Description</label>
                   <textarea
-                    id="description"
                     name="description"
                     value={formData.description}
                     onChange={handleChange}
                     placeholder="Optional description for this payment"
                     rows="3"
+                      className="glass-textarea"
                   />
+                  </div>
                 </div>
               </div>
 
               {/* Geolocation Conditions */}
-              <div className="form-group">
-                <h3>
-                  <label className="checkbox-label">
+              <div className="glass-strong rounded-2xl p-6">
+                <label className="flex items-center gap-3 mb-4 cursor-pointer">
                     <input
                       type="checkbox"
                       name="enableGeo"
                       checked={formData.enableGeo}
                       onChange={handleChange}
+                    className="checkbox-custom"
                     />
-                    Geolocation Conditions
+                  <div className="flex items-center gap-2">
+                    <MapPin size={18} className="text-blue-400" />
+                    <h3 className="text-lg font-semibold text-white">Geolocation Conditions</h3>
+                  </div>
                   </label>
-                </h3>
 
                 {formData.enableGeo && (
-                  <>
-                    <div className="input-group">
-                      <label htmlFor="geoLatitude">Latitude</label>
+                  <div className="space-y-4 pl-8">
+                    <div>
+                      <label className="block text-sm text-blue-200/70 mb-2">Latitude</label>
                       <input
                         type="number"
-                        id="geoLatitude"
                         name="geoLatitude"
                         value={formData.geoLatitude}
                         onChange={handleChange}
                         placeholder="e.g., 37.7749"
                         step="0.000001"
+                        className="glass-input"
                       />
                     </div>
 
-                    <div className="input-group">
-                      <label htmlFor="geoLongitude">Longitude</label>
+                    <div>
+                      <label className="block text-sm text-blue-200/70 mb-2">Longitude</label>
                       <input
                         type="number"
-                        id="geoLongitude"
                         name="geoLongitude"
                         value={formData.geoLongitude}
                         onChange={handleChange}
                         placeholder="e.g., -122.4194"
                         step="0.000001"
+                        className="glass-input"
                       />
                     </div>
 
-                    <div className="input-group">
-                      <label htmlFor="geoRadius">Radius (meters)</label>
+                    <div>
+                      <label className="block text-sm text-blue-200/70 mb-2">Radius (meters)</label>
                       <input
                         type="number"
-                        id="geoRadius"
                         name="geoRadius"
                         value={formData.geoRadius}
                         onChange={handleChange}
                         min="1"
+                        className="glass-input"
                       />
-                      <small className="helper-text">
+                      <p className="text-xs text-blue-300/60 mt-2">
                         Payment only valid within {formData.geoRadius}m of location
-                      </small>
+                      </p>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
 
               {/* Time Conditions */}
-              <div className="form-group">
-                <h3>
-                  <label className="checkbox-label">
+              <div className="glass-strong rounded-2xl p-6">
+                <label className="flex items-center gap-3 mb-4 cursor-pointer">
                     <input
                       type="checkbox"
                       name="enableTime"
                       checked={formData.enableTime}
                       onChange={handleChange}
+                    className="checkbox-custom"
                     />
-                    Time Window Conditions
+                  <div className="flex items-center gap-2">
+                    <Clock size={18} className="text-blue-400" />
+                    <h3 className="text-lg font-semibold text-white">Time Window Conditions</h3>
+                  </div>
                   </label>
-                </h3>
 
                 {formData.enableTime && (
-                  <>
-                    <div className="input-group">
-                      <label htmlFor="startTime">Start Time</label>
+                  <div className="space-y-4 pl-8">
+                    <div>
+                      <label className="block text-sm text-blue-200/70 mb-2">Start Time</label>
                       <input
                         type="datetime-local"
-                        id="startTime"
                         name="startTime"
                         value={formData.startTime}
                         onChange={handleChange}
+                        className="glass-input"
                       />
                     </div>
 
-                    <div className="input-group">
-                      <label htmlFor="endTime">End Time</label>
+                    <div>
+                      <label className="block text-sm text-blue-200/70 mb-2">End Time</label>
                       <input
                         type="datetime-local"
-                        id="endTime"
                         name="endTime"
                         value={formData.endTime}
                         onChange={handleChange}
+                        className="glass-input"
                       />
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
 
               {/* NFT Holder Conditions */}
-              <div className="form-group">
-                <h3>
-                  <label className="checkbox-label">
+              <div className="glass-strong rounded-2xl p-6">
+                <label className="flex items-center gap-3 mb-4 cursor-pointer">
                     <input
                       type="checkbox"
                       name="enableNFT"
                       checked={formData.enableNFT}
                       onChange={handleChange}
+                    className="checkbox-custom"
                     />
-                    NFT Holder Requirements
+                  <div className="flex items-center gap-2">
+                    <ImageIcon size={18} className="text-blue-400" />
+                    <h3 className="text-lg font-semibold text-white">NFT Holder Requirements</h3>
+                  </div>
                   </label>
-                </h3>
 
                 {formData.enableNFT && (
-                  <>
-                    <div className="input-group">
-                      <label htmlFor="nftContract">NFT Asset ID</label>
+                  <div className="space-y-4 pl-8">
+                    <div>
+                      <label className="block text-sm text-blue-200/70 mb-2">NFT Asset ID</label>
                       <input
                         type="text"
-                        id="nftContract"
                         name="nftContract"
                         value={formData.nftContract}
                         onChange={handleChange}
                         placeholder="e.g., 123456789"
+                        className="glass-input"
                       />
-                      <small className="helper-text">
+                      <p className="text-xs text-blue-300/60 mt-2">
                         Algorand ASA ID of the required NFT
-                      </small>
+                      </p>
                     </div>
 
-                    <div className="input-group">
-                      <label htmlFor="nftRequired">Minimum Balance</label>
+                    <div>
+                      <label className="block text-sm text-blue-200/70 mb-2">Minimum Balance</label>
                       <input
                         type="number"
-                        id="nftRequired"
                         name="nftRequired"
                         value={formData.nftRequired}
                         onChange={handleChange}
                         min="1"
+                        className="glass-input"
                       />
-                      <small className="helper-text">
+                      <p className="text-xs text-blue-300/60 mt-2">
                         User must hold at least this many NFTs
-                      </small>
+                      </p>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
 
               {/* Status Message */}
               {statusMessage && (
-                <div className={`status-message ${statusMessage.includes('✅') ? 'success' : statusMessage.includes('❌') ? 'error' : 'info'}`}>
+                <div className={`glass-strong rounded-xl p-4 border ${
+                  statusMessage.includes('✅') ? 'border-green-500/30' : 
+                  statusMessage.includes('❌') ? 'border-red-500/30' : 
+                  'border-blue-500/30'
+                }`}>
+                  <p className={`text-sm ${
+                    statusMessage.includes('✅') ? 'text-green-300' : 
+                    statusMessage.includes('❌') ? 'text-red-300' : 
+                    'text-blue-300'
+                  }`}>
                   {statusMessage}
+                  </p>
                 </div>
               )}
 
               {/* Actions */}
-              <div className="form-actions">
-                <button type="submit" className="btn btn-primary" disabled={isCreating}>
-                  {isCreating ? 'Creating...' : 'Generate QR Code'}
+              <div className="space-y-3">
+                <button 
+                  type="submit" 
+                  disabled={isCreating}
+                  className="w-full glass-strong glass-hover rounded-xl py-4 font-medium text-white transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isCreating ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={18} />
+                      Generate QR Code
+                    </>
+                  )}
                 </button>
                 {qrGenerated && (
-                  <button type="button" onClick={resetForm} className="btn btn-secondary">
+                  <button 
+                    type="button" 
+                    onClick={resetForm} 
+                    className="w-full glass glass-hover rounded-xl py-4 font-medium text-white transition-all active:scale-[0.98]"
+                  >
                     Create New
                   </button>
                 )}
@@ -486,63 +703,85 @@ const CreateQRPage = () => {
           </div>
 
           {/* QR Code Preview Section */}
-          <div className="preview-section">
+          <div className="slide-up" style={{ animationDelay: '0.2s' }}>
             {qrGenerated ? (
-              <div className="qr-preview">
-                <h3>Your QR Code</h3>
-                <div className="qr-code-wrapper" ref={qrRef}>
+              <div className="glass-strong rounded-2xl p-6 sticky top-6">
+                <h3 className="text-lg font-semibold text-white mb-6 text-center">Your QR Code</h3>
+                
+                <div className="glass rounded-2xl p-6 mb-6" ref={qrRef}>
+                  <div className="bg-white rounded-xl p-4 inline-block w-full flex justify-center">
                   <QRCodeSVG
                     value={qrData}
-                    size={300}
+                      size={Math.min(300, window.innerWidth - 120)}
                     level="H"
                     includeMargin={true}
                   />
+                  </div>
                 </div>
 
-                <div className="qr-info">
-                  <h4>{formData.qrName}</h4>
-                  <p className="qr-type">{formData.transactionType}</p>
+                <div className="glass rounded-xl p-4 mb-4">
+                  <h4 className="text-lg font-bold text-white mb-1">{formData.qrName}</h4>
+                  <p className="text-sm text-blue-300/70 capitalize mb-2">{formData.transactionType}</p>
                   {formData.amount && (
-                    <p className="qr-amount">
+                    <p className="text-xl font-bold text-blue-200">
                       {(parseInt(formData.amount) / 1000000).toFixed(6)} ALGO
                     </p>
                   )}
                   {formData.description && (
-                    <p className="qr-description">{formData.description}</p>
+                    <p className="text-sm text-blue-200/60 mt-2">{formData.description}</p>
                   )}
                 </div>
 
-                <div className="qr-conditions">
+                {(formData.enableGeo || formData.enableTime || formData.enableNFT) && (
+                  <div className="glass rounded-xl p-4 mb-6 space-y-2">
+                    <p className="text-xs text-blue-300/70 font-semibold mb-3">Active Conditions:</p>
                   {formData.enableGeo && (
-                    <div className="condition">
-                      📍 Location: {formData.geoLatitude}, {formData.geoLongitude} (±{formData.geoRadius}m)
+                      <div className="flex items-start gap-2 text-xs text-blue-200/80">
+                        <MapPin size={14} className="mt-0.5 flex-shrink-0" />
+                        <span>Location: {formData.geoLatitude}, {formData.geoLongitude} (±{formData.geoRadius}m)</span>
                     </div>
                   )}
                   {formData.enableTime && (
-                    <div className="condition">
-                      ⏰ Valid: {new Date(formData.startTime).toLocaleString()} - {new Date(formData.endTime).toLocaleString()}
+                      <div className="flex items-start gap-2 text-xs text-blue-200/80">
+                        <Clock size={14} className="mt-0.5 flex-shrink-0" />
+                        <span>Valid: {new Date(formData.startTime).toLocaleString()} - {new Date(formData.endTime).toLocaleString()}</span>
                     </div>
                   )}
                   {formData.enableNFT && (
-                    <div className="condition">
-                      🎨 Requires NFT: {formData.nftContract} (min: {formData.nftRequired})
+                      <div className="flex items-start gap-2 text-xs text-blue-200/80">
+                        <ImageIcon size={14} className="mt-0.5 flex-shrink-0" />
+                        <span>Requires NFT: {formData.nftContract} (min: {formData.nftRequired})</span>
                     </div>
                   )}
                 </div>
+                )}
 
-                <div className="qr-actions">
-                  <button onClick={downloadQR} className="btn btn-download">
-                    📥 Download PNG
+                <div className="grid grid-cols-2 gap-3">
+                  <button 
+                    onClick={downloadQR} 
+                    className="glass glass-hover rounded-xl py-3 px-4 font-medium text-white transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm"
+                  >
+                    <Download size={16} />
+                    Download
                   </button>
-                  <button onClick={printQR} className="btn btn-print">
-                    🖨️ Print
+                  <button 
+                    onClick={printQR} 
+                    className="glass glass-hover rounded-xl py-3 px-4 font-medium text-white transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm"
+                  >
+                    <Printer size={16} />
+                    Print
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="qr-placeholder">
-                <div className="placeholder-icon">📱</div>
-                <p>Fill in the form and generate your QR code</p>
+              <div className="glass-strong rounded-2xl p-12 h-full flex flex-col items-center justify-center text-center min-h-[400px]">
+                <div className="w-20 h-20 glass rounded-2xl flex items-center justify-center mb-6">
+                  <Sparkles size={40} className="text-blue-400/50" />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">Ready to Generate</h3>
+                <p className="text-sm text-blue-200/60">
+                  Fill in the form and generate your custom QR code
+                </p>
               </div>
             )}
           </div>

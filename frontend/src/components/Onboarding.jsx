@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Send, Download, ScanLine, PlusCircle, ShoppingCart, Check, AlertCircle, Key, Copy } from 'lucide-react';
 import algosdk from 'algosdk';
 

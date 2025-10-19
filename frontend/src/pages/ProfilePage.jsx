@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Copy, ExternalLink, LogOut, Settings, User, Wallet, Eye, EyeOff, Key } from 'lucide-react';
 import './ProfilePage.css';

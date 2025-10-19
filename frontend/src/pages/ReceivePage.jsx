@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import './ReceivePage.css';
@@ -10,8 +10,8 @@ const ReceivePage = () => {
   const [amount, setAmount] = useState('');
   const [qrValue, setQrValue] = useState('');
 
-  // Get wallet address from localStorage or use pooled address
-  const WALLET_ADDRESS = localStorage.getItem('algoPayAddress') || 'W4DVLNHVUEQK2GZKYLAVCTZFWHQE26WCPAIUJ55CXTTPEVHEWWTOTTREBE';
+  // TEMPORARILY: Always use pooled wallet (has the NFTs and funds)
+  const WALLET_ADDRESS = 'W4DVLNHVUEQK2GZKYLAVCTZFWHQE26WCPAIUJ55CXTTPEVHEWWTOTTREBE';
 
   useEffect(() => {
     setWalletAddress(WALLET_ADDRESS);

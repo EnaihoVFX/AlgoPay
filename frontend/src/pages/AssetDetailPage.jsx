@@ -1,17 +1,21 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, Send, Download, TrendingUp, TrendingDown, BarChart3, Info } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { ArrowLeft, ExternalLink, Send, Download, TrendingUp, TrendingDown, BarChart3, Info, Image as ImageIcon, CheckCircle } from 'lucide-react';
 import algosdk from 'algosdk';
 import './AssetDetailPage.css';
 
 const AssetDetailPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { assetId } = useParams();
   const [assetData, setAssetData] = useState(null);
   const [priceData, setPriceData] = useState(null);
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState([]);
+  const [claiming, setClaiming] = useState(false);
+  const [claimSuccess, setClaimSuccess] = useState(false);
+  const [claimError, setClaimError] = useState(null);
 
   useEffect(() => {
     fetchAssetData();
@@ -20,6 +24,26 @@ const AssetDetailPage = () => {
   const fetchAssetData = async () => {
     try {
       const WALLET_ADDRESS = localStorage.getItem('algoPayAddress') || '54Z4UQNPKFOL2LB3YTQ23SDNOMPUIUPM3WKDN3AHH2KXUCVN6WXZKYC4EI';
+      
+      // Check if this is an NFT from marketplace (passed via location state)
+      if (location.state?.asset) {
+        const nftData = location.state.asset;
+        setAssetData({
+          name: nftData.name,
+          symbol: nftData.unitName || 'NFT',
+          icon: '🖼️',
+          description: nftData.description || 'This is a non-fungible token on the Algorand blockchain.',
+          imageUrl: nftData.imageUrl,
+          explorer: `https://testnet.explorer.perawallet.app/asset/${nftData.id}`,
+          claimCode: nftData.claimCode,
+          creator: nftData.creator,
+          createdAt: nftData.createdAt,
+          isNFT: true
+        });
+        setBalance(0);
+        setLoading(false);
+        return;
+      }
       
       if (assetId === 'algo') {
         // Fetch ALGO price data
@@ -94,6 +118,47 @@ const AssetDetailPage = () => {
     }
   };
 
+  const handleClaimNFT = async () => {
+    if (!assetData?.claimCode) return;
+    
+    try {
+      setClaiming(true);
+      setClaimError(null);
+      
+      const WALLET_ADDRESS = localStorage.getItem('algoPayAddress') || '54Z4UQNPKFOL2LB3YTQ23SDNOMPUIUPM3WKDN3AHH2KXUCVN6WXZKYC4EI';
+      const userId = localStorage.getItem('algoPayUserId') || 'user1';
+      
+      const response = await fetch('http://localhost:3000/api/nft/claim', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          claimCode: assetData.claimCode,
+          recipientAddress: WALLET_ADDRESS,
+          userId: userId
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        setClaimSuccess(true);
+        setBalance(1);
+        setTimeout(() => {
+          navigate('/profile');
+        }, 2000);
+      } else {
+        setClaimError(data.message || 'Failed to claim NFT');
+      }
+    } catch (err) {
+      console.error('Error claiming NFT:', err);
+      setClaimError('Failed to claim NFT. Please try again.');
+    } finally {
+      setClaiming(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="asset-detail-page">
@@ -132,6 +197,21 @@ const AssetDetailPage = () => {
       <div className="asset-container">
         {/* Asset Header Card */}
         <div className="asset-info-card glass">
+          {assetData?.isNFT && assetData?.imageUrl ? (
+            <div className="mb-6">
+              <div className="aspect-square bg-gradient-to-br from-blue-900/30 to-purple-900/30 rounded-2xl overflow-hidden flex items-center justify-center">
+                <img
+                  src={assetData.imageUrl}
+                  alt={assetData.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+              </div>
+            </div>
+          ) : null}
+          
           <div className="flex items-center gap-4 mb-6">
             <div className="asset-icon">
               {assetData?.symbol === 'USDC' ? (
@@ -162,36 +242,79 @@ const AssetDetailPage = () => {
           )}
         </div>
 
-        {/* Your Balance */}
-        <div className="balance-card glass">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm text-blue-200/70">Your Balance</span>
-            <span className="text-2xl font-bold text-white">
-              {balance.toFixed(assetId === 'usdc' ? 2 : 4)} {assetData?.symbol}
-            </span>
+        {/* NFT Claim or Balance */}
+        {assetData?.isNFT ? (
+          <div className="balance-card glass">
+            {claimSuccess ? (
+              <div className="text-center py-6">
+                <CheckCircle size={48} className="text-green-400 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-white mb-2">NFT Claimed!</h3>
+                <p className="text-blue-200/70 text-sm mb-4">
+                  The NFT has been transferred to your wallet
+                </p>
+                <p className="text-xs text-blue-300/60">Redirecting to profile...</p>
+              </div>
+            ) : (
+              <>
+                <div className="mb-6">
+                  <div className="text-sm text-blue-200/70 mb-2">Status</div>
+                  <div className="flex items-center gap-2">
+                    <div className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold">
+                      Available to Claim
+                    </div>
+                  </div>
+                </div>
+                
+                {claimError && (
+                  <div className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/30">
+                    <p className="text-sm text-red-300">{claimError}</p>
+                  </div>
+                )}
+                
+                <button
+                  onClick={handleClaimNFT}
+                  disabled={claiming}
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold text-white text-lg"
+                >
+                  {claiming ? 'Claiming...' : 'Claim NFT'}
+                </button>
+                <p className="text-xs text-blue-300/60 text-center mt-3">
+                  This will transfer the NFT to your connected wallet
+                </p>
+              </>
+            )}
           </div>
-          
-          {priceData && (
-            <div className="text-sm text-blue-200/60 mb-6">
-              ≈ ${(balance * priceData.price).toFixed(2)} USD
+        ) : (
+          <div className="balance-card glass">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm text-blue-200/70">Your Balance</span>
+              <span className="text-2xl font-bold text-white">
+                {balance.toFixed(assetId === 'usdc' ? 2 : 4)} {assetData?.symbol}
+              </span>
             </div>
-          )}
+            
+            {priceData && (
+              <div className="text-sm text-blue-200/60 mb-6">
+                ≈ ${(balance * priceData.price).toFixed(2)} USD
+              </div>
+            )}
 
-          <div className="flex gap-3">
-            <button 
-              onClick={() => navigate('/send')}
-              className="flex-1 btn-action"
-            >
-              <Send size={22} />
-            </button>
-            <button 
-              onClick={() => navigate('/receive')}
-              className="flex-1 btn-action"
-            >
-              <Download size={22} />
-            </button>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => navigate('/send')}
+                className="flex-1 btn-action"
+              >
+                <Send size={22} />
+              </button>
+              <button 
+                onClick={() => navigate('/receive')}
+                className="flex-1 btn-action"
+              >
+                <Download size={22} />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Market Stats */}
         {priceData && (

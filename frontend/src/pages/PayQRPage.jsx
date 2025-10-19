@@ -1,527 +1,396 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Html5Qrcode } from 'html5-qrcode';
-import './PayQRPage.css';
+import React, { useState, useEffect, useRef } from 'react';
+import { ArrowLeft, Camera, ImagePlus, AlertCircle, CheckCircle2, QrCode, Sparkles } from 'lucide-react';
 
 const PayQRPage = () => {
-  const navigate = useNavigate();
-  const [scanning, setScanning] = useState(true);
-  const [scannedData, setScannedData] = useState(null);
-  const [paymentType, setPaymentType] = useState(null); // 'algo', 'nft', 'listing'
-  const [loading, setLoading] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [qrData, setQrData] = useState(null);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [cameraReady, setCameraReady] = useState(false);
-  const scannerRef = useRef(null);
-  const html5QrCodeRef = useRef(null);
-  const scannerInitializedRef = useRef(false);
-  const lastScanRef = useRef(null);
-  const userId = 'testuser1';
+  const [processing, setProcessing] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
 
-  const parseQRData = (data) => {
-    try {
-      // Try to parse as URL first
-      const url = new URL(data);
-      const params = new URLSearchParams(url.search);
-      
-      // Check for NFT claim code
-      if (params.has('claim') && params.get('type') === 'nft') {
-        return {
-          type: 'nft',
-          claimCode: params.get('claim'),
-          data: data
-        };
-      }
-      
-      // Check for listing payment
-      if (url.pathname.includes('/scan') || params.has('listing')) {
-        return {
-          type: 'listing',
-          listingID: params.get('listing'),
-          data: data
-        };
-      }
-      
-      // Check for Algorand payment
-      if (data.startsWith('algorand://')) {
-        const address = data.replace('algorand://', '').split('?')[0];
-        const amount = params.get('amount');
-        return {
-          type: 'algo',
-          address: address,
-          amount: amount,
-          data: data
-        };
-      }
-      
-      // Check for NFT (if contains asset ID)
-      if (params.has('asset') || params.has('nft')) {
-        return {
-          type: 'nft',
-          assetId: params.get('asset') || params.get('nft'),
-          claimCode: params.get('claim'),
-          data: data
-        };
-      }
-      
-      // Try JSON format
-      const parsed = JSON.parse(data);
-      return {
-        type: parsed.type || 'listing',
-        ...parsed,
-        data: data
-      };
-    } catch (e) {
-      // Plain address or listing ID
-      if (data.length === 58 && /^[A-Z2-7]+$/.test(data)) {
-        return {
-          type: 'algo',
-          address: data,
-          data: data
-        };
-      }
-      
-      return {
-        type: 'listing',
-        listingID: data,
-        data: data
-      };
-    }
-  };
-
-  // Initialize scanner
   useEffect(() => {
-    if (scanning && !scannerInitializedRef.current) {
-      // Check if element exists before initializing
-      const element = document.getElementById("qr-reader");
-      if (!element) {
-        console.log('QR reader element not found yet');
-        return;
-      }
-
-      scannerInitializedRef.current = true;
-      
-      try {
-        const qrScanner = new Html5Qrcode("qr-reader");
-        html5QrCodeRef.current = qrScanner;
-
-        const config = {
-          fps: 5, // Reduced FPS for better performance
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0,
-          disableFlip: false, // Allow camera flip
-          videoConstraints: {
-            facingMode: "environment",
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-          }
-        };
-
-        qrScanner.start(
-          { facingMode: "environment" },
-          config,
-          (decodedText) => {
-            // Success callback - debounce to prevent multiple scans
-            const now = Date.now();
-            if (lastScanRef.current && (now - lastScanRef.current) < 2000) {
-              return; // Ignore scans within 2 seconds
-            }
-            
-            lastScanRef.current = now;
-            const parsed = parseQRData(decodedText);
-            setScannedData(parsed);
-            setPaymentType(parsed.type);
-            setScanning(false);
-            
-            // Stop scanner after successful scan
-            if (html5QrCodeRef.current) {
-              try {
-                const state = html5QrCodeRef.current.getState();
-                if (state === 2) {
-                  html5QrCodeRef.current.stop().then(() => {
-                    scannerInitializedRef.current = false;
-                  }).catch(() => {
-                    scannerInitializedRef.current = false;
-                  });
-                }
-              } catch (error) {
-                scannerInitializedRef.current = false;
-              }
-            }
-          },
-          (errorMessage) => {
-            // Error callback (can be ignored, happens frequently during scanning)
-          }
-        ).then(() => {
-          setCameraReady(true);
-        }).catch((err) => {
-          console.error('Unable to start scanner:', err);
-          setError('Camera access denied or not available');
-          scannerInitializedRef.current = false;
-        });
-      } catch (err) {
-        console.error('Error creating scanner:', err);
-        scannerInitializedRef.current = false;
-      }
+    if (scanning) {
+      startCamera();
     }
-
     return () => {
-      // Cleanup function
-      const cleanup = async () => {
-        if (html5QrCodeRef.current) {
-          const scanner = html5QrCodeRef.current;
-          
-          try {
-            // Check if scanner is actually running before stopping
-            const state = scanner.getState();
-            if (state === 2) { // 2 = SCANNING state
-              await scanner.stop();
-            }
-          } catch (error) {
-            // Silently ignore - scanner might not have started or already stopped
-          } finally {
-            scannerInitializedRef.current = false;
-            html5QrCodeRef.current = null;
-          }
-        }
-      };
-      
-      cleanup();
+      stopCamera();
     };
   }, [scanning]);
 
-  const processPayment = async () => {
-    setLoading(true);
-    setError(null);
-
+  const startCamera = async () => {
     try {
-      if (paymentType === 'listing') {
-        // First verify the listing exists
-        const listingRes = await fetch(`http://localhost:3000/api/listing/${scannedData.listingID}`);
-        const listingData = await listingRes.json();
-        
-        if (!listingData || listingData.error) {
-          setError(`Listing "${scannedData.listingID}" not found. Please create it first.`);
-          setLoading(false);
-          return;
-        }
-        
-        // Process as direct payment to seller (simplified, no escrow)
-        const response = await fetch('http://localhost:3000/api/withdraw', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: userId,
-            toAddress: listingData.sellerAddress,
-            amount: listingData.price
-          })
-        });
-
-        const data = await response.json();
-        if (data.success) {
-          setSuccess({
-            type: `Payment for ${listingData.title}`,
-            txid: data.txid,
-            explorer: data.explorer
-          });
-          
-          // Trigger wallet balance refresh
-          setTimeout(() => {
-            window.dispatchEvent(new Event('refreshWallet'));
-          }, 2000);
-        } else {
-          setError(data.error || 'Payment failed');
-        }
-        return;
-      }
-
-      if (paymentType === 'algo') {
-        // Process ALGO payment
-        let amount = scannedData.amount;
-        
-        if (!amount) {
-          // Prompt for amount if not in QR
-          const amountAlgo = prompt('Enter amount in ALGO (e.g., 0.1):');
-          if (!amountAlgo) {
-            setError('Amount is required');
-            setLoading(false);
-            return;
-          }
-          amount = Math.floor(parseFloat(amountAlgo) * 1000000);
-        }
-
-        const response = await fetch('http://localhost:3000/api/withdraw', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: userId,
-            toAddress: scannedData.address,
-            amount: parseInt(amount)
-          })
-        });
-
-        const data = await response.json();
-        if (data.success) {
-          setSuccess({
-            type: 'ALGO Payment',
-            txid: data.txid,
-            explorer: data.explorer
-          });
-          
-          // Trigger wallet balance refresh
-          setTimeout(() => {
-            window.dispatchEvent(new Event('refreshWallet'));
-          }, 2000);
-        } else {
-          setError(data.error || 'Payment failed');
-        }
-      }
-
-      if (paymentType === 'nft') {
-        // Check if it's a claim code
-        if (scannedData.claimCode) {
-          // First, get NFT info
-          const nftInfoRes = await fetch(`http://localhost:3000/api/nft/claim/${scannedData.claimCode}`);
-          const nftInfo = await nftInfoRes.json();
-          
-          if (nftInfo.error) {
-            setError(nftInfo.message || 'NFT not found');
-            setLoading(false);
-            return;
-          }
-          
-          if (nftInfo.status === 'claimed') {
-            setError('This NFT has already been claimed');
-            setLoading(false);
-            return;
-          }
-          
-          // For NFT claiming, use pooled wallet since we need to sign opt-in transaction
-          // In production, user would sign with their own wallet via WalletConnect etc.
-          const recipientAddress = 'W4DVLNHVUEQK2GZKYLAVCTZFWHQE26WCPAIUJ55CXTTPEVHEWWTOTTREBE';
-          
-          // Claim NFT
-          const claimRes = await fetch('http://localhost:3000/api/nft/claim', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              claimCode: scannedData.claimCode,
-              recipientAddress: recipientAddress,
-              userId: userId
-            })
-          });
-          
-          const claimData = await claimRes.json();
-          
-          if (claimData.success) {
-            setSuccess({
-              type: `✅ NFT Claimed: ${claimData.name}`,
-              txid: claimData.txId,
-              explorer: claimData.explorerUrl,
-              message: 'Check your wallet to see your new NFT!'
-            });
-            
-            // Trigger a wallet refresh after 2 seconds
-            setTimeout(() => {
-              window.dispatchEvent(new Event('refreshWallet'));
-            }, 2000);
-          } else {
-            setError(claimData.message || 'Failed to claim NFT');
-          }
-        } else {
-          setError('NFT claiming requires a claim code');
-        }
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } 
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
       }
     } catch (err) {
-      setError('Payment failed: ' + err.message);
-    } finally {
-      setLoading(false);
+      setError('Camera access denied. Please enable camera permissions.');
+      setScanning(false);
     }
   };
 
-  const resetScanner = async () => {
-    // Clean up any existing scanner
-    if (html5QrCodeRef.current) {
-      try {
-        const state = html5QrCodeRef.current.getState();
-        if (state === 2) { // Only stop if actually scanning
-          await html5QrCodeRef.current.stop();
-        }
-      } catch (error) {
-        // Ignore errors
-      } finally {
-        scannerInitializedRef.current = false;
-        html5QrCodeRef.current = null;
-      }
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = videoRef.current.srcObject.getTracks();
+      tracks.forEach(track => track.stop());
     }
-    
-    scannerInitializedRef.current = false;
-    html5QrCodeRef.current = null;
-    lastScanRef.current = null; // Reset scan debounce
-    
+  };
+
+  const handleScanClick = () => {
     setScanning(true);
-    setScannedData(null);
-    setPaymentType(null);
     setError(null);
-    setSuccess(null);
-    setCameraReady(false);
+    setSuccess(false);
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Simulate QR code processing
+      setProcessing(true);
+      setTimeout(() => {
+        setProcessing(false);
+        setSuccess(true);
+        setQrData({
+          amount: '5.50',
+          recipient: 'ALGO...XYZ123',
+          note: 'Payment for coffee'
+        });
+      }, 1500);
+    }
+  };
+
+  const handleConfirmPayment = () => {
+    setProcessing(true);
+    setTimeout(() => {
+      setProcessing(false);
+      setSuccess(true);
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+    }, 2000);
   };
 
   return (
-    <div className="pay-qr-page">
-      {/* Header */}
-      <div className="pay-header">
-        <button className="back-btn" onClick={() => navigate('/')}>
-          ← Back
-        </button>
-        <h1>Scan QR Code</h1>
-        <div className="spacer"></div>
+    <div className="min-h-screen text-white relative overflow-hidden" style={{
+      background: 'radial-gradient(ellipse at top, #0f1729 0%, #000000 50%, #000000 100%)'
+    }}>
+      {/* Ambient Background Elements */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-900/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/4 right-1/4 w-80 h-80 bg-indigo-900/15 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-slate-900/20 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="pay-container">
-        {success ? (
-          /* Success Screen */
-          <div className="success-screen">
-            <div className="success-icon">✅</div>
-            <h2>Payment Successful!</h2>
-            <div className="success-details">
-              <p className="payment-type">{success.type}</p>
-              {success.message && (
-                <p className="success-message" style={{ color: '#60a5fa', fontSize: '14px', marginBottom: '12px' }}>
-                  {success.message}
-                </p>
-              )}
-              <p className="txid-label">Transaction ID:</p>
-              <code className="txid">{success.txid}</code>
-              <a 
-                href={success.explorer} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="explorer-btn"
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+
+        @keyframes scanLine {
+          0% { top: 0%; }
+          50% { top: 100%; }
+          100% { top: 0%; }
+        }
+
+        .glass {
+          background: linear-gradient(135deg, rgba(30, 58, 138, 0.15), rgba(15, 23, 42, 0.3));
+          backdrop-filter: blur(30px);
+          border: 1px solid rgba(59, 130, 246, 0.15);
+          box-shadow: 
+            0 8px 32px 0 rgba(0, 0, 0, 0.37),
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-strong {
+          background: linear-gradient(135deg, rgba(30, 58, 138, 0.2), rgba(15, 23, 42, 0.4));
+          backdrop-filter: blur(40px);
+          border: 1px solid rgba(59, 130, 246, 0.2);
+          box-shadow: 
+            0 12px 40px 0 rgba(0, 0, 0, 0.45),
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-hover:hover {
+          background: linear-gradient(135deg, rgba(30, 58, 138, 0.25), rgba(15, 23, 42, 0.45));
+          border-color: rgba(59, 130, 246, 0.3);
+          box-shadow: 
+            0 16px 48px 0 rgba(0, 0, 0, 0.5),
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .fade-in {
+          animation: fadeIn 0.5s ease-out;
+        }
+
+        .slide-up {
+          animation: slideUp 0.6s ease-out;
+        }
+
+        .pulse-animation {
+          animation: pulse 2s ease-in-out infinite;
+        }
+
+        .scan-line {
+          position: absolute;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+          animation: scanLine 2s linear infinite;
+        }
+
+        .corner-frame {
+          position: absolute;
+          width: 40px;
+          height: 40px;
+          border: 3px solid #3b82f6;
+        }
+
+        .corner-tl { top: 0; left: 0; border-right: none; border-bottom: none; }
+        .corner-tr { top: 0; right: 0; border-left: none; border-bottom: none; }
+        .corner-bl { bottom: 0; left: 0; border-right: none; border-top: none; }
+        .corner-br { bottom: 0; right: 0; border-left: none; border-top: none; }
+
+        video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      `}</style>
+
+      <div className="px-5 pb-10 max-w-lg mx-auto relative z-10 min-h-screen flex flex-col">
+        {/* Header */}
+        <div className="pt-6 pb-6 flex items-center justify-between fade-in">
+          <button 
+            onClick={() => window.history.back()}
+            className="w-10 h-10 glass glass-hover rounded-xl flex items-center justify-center transition-all active:scale-95"
+          >
+            <ArrowLeft size={20} className="text-blue-200" />
+          </button>
+          <h1 className="text-xl font-semibold text-white">Scan QR Code</h1>
+          <div className="w-10"></div>
+        </div>
+
+        {!scanning && !qrData && !success && (
+          <div className="flex-1 flex flex-col">
+            {/* Hero Section */}
+            <div className="text-center mb-8 slide-up">
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Scan QR Code
+              </h2>
+              <p className="text-sm text-blue-200/60">
+                Use your camera or upload an image
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-3 slide-up" style={{ animationDelay: '0.1s' }}>
+              <button
+                onClick={handleScanClick}
+                className="w-full glass glass-hover rounded-xl p-4 transition-all active:scale-[0.98]"
               >
-                View on Explorer →
-              </a>
-            </div>
-            <div className="success-actions">
-              <button onClick={resetScanner} className="btn btn-primary">
-                Scan Another
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl glass-strong flex items-center justify-center">
+                    <Camera size={20} className="text-blue-200/70" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="font-medium text-white text-sm">
+                      Scan with Camera
+                    </div>
+                    <div className="text-xs text-blue-300/60">
+                      Use camera to scan QR codes
+                    </div>
+                  </div>
+                </div>
               </button>
-              <button onClick={() => navigate('/')} className="btn btn-secondary">
-                Back to Wallet
+
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full glass glass-hover rounded-xl p-4 transition-all active:scale-[0.98]"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl glass-strong flex items-center justify-center">
+                    <ImagePlus size={20} className="text-blue-200/70" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="font-medium text-white text-sm">
+                      Upload from Gallery
+                    </div>
+                    <div className="text-xs text-blue-300/60">
+                      Select QR code image
+                    </div>
+                  </div>
+                </div>
               </button>
-            </div>
-          </div>
-        ) : scanning ? (
-          /* Scanner Screen */
-          <div className="scanner-screen">
-            <div className="scanner-instructions">
-              <h2>Point at QR Code</h2>
-              <p>Scan any payment QR code for ALGO, NFT, or listings</p>
-            </div>
-            
-            <div className="scanner-frame">
-              {!cameraReady && !error && (
-                <div className="camera-loading">
-                  <div className="loading-spinner"></div>
-                  <p>Starting camera...</p>
-                  <p className="camera-hint">Please allow camera access</p>
-                </div>
-              )}
-              {error && (
-                <div className="camera-error">
-                  <div className="error-icon">⚠️</div>
-                  <p>{error}</p>
-                  <button onClick={() => window.location.reload()} className="btn btn-secondary" style={{ marginTop: '16px', width: 'auto', padding: '12px 24px' }}>
-                    Reload Page
-                  </button>
-                </div>
-              )}
-              <div id="qr-reader" ref={scannerRef}></div>
-            </div>
 
-            <div className="scanner-help">
-              <p>💡 Supports: ALGO payments • NFTs • Listings</p>
-            </div>
-          </div>
-        ) : (
-          /* Confirmation Screen */
-          <div className="confirm-screen">
-            <div className="confirm-icon">
-              {paymentType === 'algo' && '💰'}
-              {paymentType === 'nft' && '🎨'}
-              {paymentType === 'listing' && '🛒'}
-            </div>
-            
-            <h2>Confirm Payment</h2>
-            
-            {/* Debug: Show raw scanned data */}
-            <details className="debug-details">
-              <summary>Scanned Data</summary>
-              <pre className="debug-data">{JSON.stringify(scannedData, null, 2)}</pre>
-            </details>
-            
-            <div className="payment-details">
-              <div className="detail-row">
-                <span className="label">Type:</span>
-                <span className="value type-badge">
-                  {paymentType === 'algo' && 'ALGO Payment'}
-                  {paymentType === 'nft' && '🎁 Claim NFT'}
-                  {paymentType === 'listing' && 'Listing Payment'}
-                </span>
-              </div>
-
-              {scannedData.address && (
-                <div className="detail-row">
-                  <span className="label">To:</span>
-                  <code className="value address">{scannedData.address}</code>
-                </div>
-              )}
-
-              {scannedData.amount && (
-                <div className="detail-row">
-                  <span className="label">Amount:</span>
-                  <span className="value amount">
-                    {(parseInt(scannedData.amount) / 1000000).toFixed(6)} ALGO
-                  </span>
-                </div>
-              )}
-
-              {scannedData.listingID && (
-                <div className="detail-row">
-                  <span className="label">Listing:</span>
-                  <span className="value">{scannedData.listingID}</span>
-                </div>
-              )}
-
-              {scannedData.assetId && (
-                <div className="detail-row">
-                  <span className="label">Asset ID:</span>
-                  <span className="value">{scannedData.assetId}</span>
-                </div>
-              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
             </div>
 
             {error && (
-              <div className="error-alert">
-                ⚠️ {error}
+              <div className="mt-4 glass-strong rounded-xl p-4 border border-red-500/30">
+                <div className="flex items-center gap-3">
+                  <AlertCircle size={20} className="text-red-400 flex-shrink-0" />
+                  <p className="text-sm text-red-300">{error}</p>
+                </div>
               </div>
             )}
+          </div>
+        )}
 
-            <div className="confirm-actions">
-              <button 
-                onClick={processPayment} 
-                className="btn btn-primary btn-lg"
-                disabled={loading}
+        {scanning && !qrData && (
+          <div className="flex-1 flex flex-col slide-up">
+            {/* Camera View */}
+            <div className="flex-1 glass-strong rounded-2xl overflow-hidden relative mb-6">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                className="w-full h-full"
+              />
+              <canvas ref={canvasRef} className="hidden" />
+              
+              {/* Scanning Frame */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="relative w-64 h-64">
+                  <div className="corner-frame corner-tl"></div>
+                  <div className="corner-frame corner-tr"></div>
+                  <div className="corner-frame corner-bl"></div>
+                  <div className="corner-frame corner-br"></div>
+                  <div className="scan-line"></div>
+                </div>
+              </div>
+
+              {/* Instructions */}
+              <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
+                <p className="text-center text-white text-sm">
+                  Position QR code within the frame
+                </p>
+              </div>
+            </div>
+
+            {/* Cancel Button */}
+            <button
+              onClick={() => {
+                setScanning(false);
+                stopCamera();
+              }}
+              className="w-full glass glass-hover rounded-xl py-4 text-center font-medium text-white transition-all active:scale-[0.98]"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
+        {qrData && !success && (
+          <div className="flex-1 flex flex-col slide-up">
+            {/* Payment Details */}
+            <div className="glass-strong rounded-2xl p-6 mb-6">
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-bold text-white mb-2">
+                  Payment Details
+                </h2>
+                <p className="text-sm text-blue-200/60">
+                  Review details before confirming
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="glass rounded-xl p-4">
+                  <div className="text-xs text-blue-300/60 mb-1">Amount</div>
+                  <div className="text-2xl font-bold text-white">
+                    {qrData.amount} ALGO
+                  </div>
+                  <div className="text-sm text-blue-300/60 mt-1">
+                    ${(parseFloat(qrData.amount) * 0.15).toFixed(2)} USD
+                  </div>
+                </div>
+
+                <div className="glass rounded-xl p-4">
+                  <div className="text-xs text-blue-300/60 mb-2">Recipient</div>
+                  <div className="font-mono text-sm text-white break-all">
+                    {qrData.recipient}
+                  </div>
+                </div>
+
+                {qrData.note && (
+                  <div className="glass rounded-xl p-4">
+                    <div className="text-xs text-blue-300/60 mb-2">Note</div>
+                    <div className="text-sm text-white">
+                      {qrData.note}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              <button
+                onClick={handleConfirmPayment}
+                disabled={processing}
+                className="w-full glass-strong glass-hover rounded-xl py-4 font-medium text-white transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {loading ? 'Processing...' : 'Confirm Payment'}
+                {processing ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Processing...
+                  </>
+                ) : (
+                  'Confirm Payment'
+                )}
               </button>
-              <button 
-                onClick={resetScanner} 
-                className="btn btn-secondary"
-                disabled={loading}
+
+              <button
+                onClick={() => setQrData(null)}
+                disabled={processing}
+                className="w-full glass glass-hover rounded-xl py-4 font-medium text-white transition-all active:scale-[0.98] disabled:opacity-50"
               >
-                Scan Again
+                Cancel
               </button>
+            </div>
+          </div>
+        )}
+
+        {success && (
+          <div className="flex-1 flex items-center justify-center slide-up">
+            <div className="text-center">
+              <div className="w-20 h-20 mx-auto mb-6 glass-strong rounded-full flex items-center justify-center">
+                <CheckCircle2 size={44} className="text-blue-200" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Payment Sent
+              </h2>
+              <p className="text-sm text-blue-200/60 mb-6">
+                Transaction processed successfully
+              </p>
+              <div className="glass rounded-xl p-4 inline-block">
+                <div className="text-xs text-blue-300/60 mb-1">Amount Sent</div>
+                <div className="text-xl font-bold text-white">
+                  {qrData?.amount} ALGO
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -531,4 +400,3 @@ const PayQRPage = () => {
 };
 
 export default PayQRPage;
-

@@ -1,3 +1,4 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
@@ -21,7 +22,7 @@ const CommunityPage = () => {
         <div className="w-10"></div>
       </div>
 
-      <div className="max-w-2xl mx-auto p-6 pb-28">
+      <div className="max-w-2xl mx-auto p-6 pb-24">
         <div className="text-center py-20 glass rounded-2xl" style={{
           background: 'linear-gradient(135deg, rgba(30, 58, 138, 0.15), rgba(15, 23, 42, 0.3))',
           backdropFilter: 'blur(30px)',

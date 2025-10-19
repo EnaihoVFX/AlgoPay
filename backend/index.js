@@ -784,6 +784,35 @@ app.get('/api/nft/unclaimed', (req, res) => {
 });
 
 /**
+ * Get all NFTs for marketplace
+ * GET /api/marketplace/nfts
+ */
+app.get('/api/marketplace/nfts', (req, res) => {
+  try {
+    const nfts = nftHelpers.getAllUnclaimedNFTs();
+    
+    // Enrich with explorer links and format for marketplace
+    const enrichedNFTs = nfts.map(nft => ({
+      ...nft,
+      explorerUrl: `https://testnet.algoexplorer.io/asset/${nft.assetId}`,
+      claimUrl: `/pay?type=nft&claim=${nft.claimCode}`
+    }));
+    
+    res.json({
+      count: enrichedNFTs.length,
+      nfts: enrichedNFTs
+    });
+    
+  } catch (err) {
+    console.error('Error getting marketplace NFTs:', err.message);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: err.message
+    });
+  }
+});
+
+/**
  * Get user details (user info + balance)
  * GET /api/user/:userId
  */
@@ -897,6 +926,9 @@ app.listen(PORT, () => {
   console.log(`   GET  http://localhost:${PORT}/api/nft/created/:userId`);
   console.log(`   GET  http://localhost:${PORT}/api/nft/claimed/:userId`);
   console.log(`   GET  http://localhost:${PORT}/api/nft/unclaimed`);
+  console.log('');
+  console.log('   🛒 Marketplace:');
+  console.log(`   GET  http://localhost:${PORT}/api/marketplace/nfts`);
   console.log('');
   console.log('💡 Press Ctrl+C to stop');
   console.log('═══════════════════════════════════════════════════════════════');

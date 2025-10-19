@@ -43,6 +43,8 @@ Accessibility-first UI and an agentic decision layer to automate routine transac
 
 We built the hard parts (settlement, rule verification, escrow safety) and hide them behind a simple, wallet-like mobile UX.
 
+**NEW: NFT Marketplace** — Browse and claim NFTs directly within the app. A dedicated marketplace page displays all available NFTs with beautiful UI, one-click claiming, and real blockchain integration.
+
 Product highlights (for users)
 
 Scan a sticker → see product image, amount, and clear transaction summary.

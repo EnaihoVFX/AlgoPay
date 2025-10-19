@@ -1,3 +1,4 @@
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Wallet, ShoppingBag, Users } from 'lucide-react';
 import './BottomNav.css';

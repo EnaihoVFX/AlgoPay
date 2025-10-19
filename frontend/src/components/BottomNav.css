@@ -1,6 +1,6 @@
 .bottom-nav-container {
   position: fixed;
-  bottom: 20px;
+  bottom: 16px;
   left: 0;
   right: 0;
   display: flex;
@@ -13,16 +13,15 @@
 .bottom-nav-capsule {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, rgba(30, 58, 138, 0.9), rgba(15, 23, 42, 0.95));
-  backdrop-filter: blur(40px);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  gap: 6px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.25), rgba(15, 23, 42, 0.35));
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(59, 130, 246, 0.2);
   border-radius: 100px;
   box-shadow: 
-    0 10px 40px rgba(0, 0, 0, 0.6),
-    0 0 1px rgba(59, 130, 246, 0.5) inset,
-    0 1px 0 rgba(255, 255, 255, 0.1) inset;
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   pointer-events: auto;
   animation: slideUp 0.5s ease-out;
 }
@@ -32,11 +31,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 14px 18px;
+  padding: 10px 16px;
   background: none;
   border: none;
   border-radius: 50px;
-  color: rgba(147, 197, 253, 0.6);
+  color: rgba(147, 197, 253, 0.5);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -47,7 +46,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(59, 130, 246, 0.15);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(30, 58, 138, 0.25));
   border-radius: 50px;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -67,7 +66,7 @@
 
 .nav-item.active::before {
   opacity: 1;
-  background: rgba(59, 130, 246, 0.25);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(30, 58, 138, 0.35));
 }
 
 .nav-item svg {
@@ -96,17 +95,22 @@
 /* Responsive */
 @media (max-width: 640px) {
   .bottom-nav-container {
-    bottom: 15px;
-    padding: 0 15px;
+    bottom: 12px;
+    padding: 0 12px;
   }
 
   .bottom-nav-capsule {
     gap: 4px;
-    padding: 10px 16px;
+    padding: 6px 12px;
   }
 
   .nav-item {
-    padding: 12px 16px;
+    padding: 8px 14px;
+  }
+  
+  .nav-item svg {
+    width: 22px;
+    height: 22px;
   }
 }
 
