@@ -1,0 +1,233 @@
+#pragma version 8
+txn ApplicationID
+int 0
+==
+bnz main_l20
+txn OnCompletion
+int OptIn
+==
+bnz main_l19
+txn OnCompletion
+int CloseOut
+==
+bnz main_l18
+txn OnCompletion
+int UpdateApplication
+==
+bnz main_l17
+txn OnCompletion
+int DeleteApplication
+==
+bnz main_l16
+txn OnCompletion
+int NoOp
+==
+bnz main_l7
+err
+main_l7:
+txna ApplicationArgs 0
+byte "create"
+==
+bnz main_l15
+txna ApplicationArgs 0
+byte "lock"
+==
+bnz main_l14
+txna ApplicationArgs 0
+byte "finalize"
+==
+bnz main_l13
+txna ApplicationArgs 0
+byte "refund"
+==
+bnz main_l12
+err
+main_l12:
+txna ApplicationArgs 1
+byte "_status"
+concat
+app_global_get
+byte ""
+!=
+assert
+txna ApplicationArgs 1
+byte "_status"
+concat
+app_global_get
+byte "locked"
+==
+assert
+txn Sender
+txna ApplicationArgs 1
+byte "_buyer"
+concat
+app_global_get
+==
+assert
+global LatestTimestamp
+txna ApplicationArgs 1
+byte "_deadline"
+concat
+app_global_get
+>=
+assert
+txna ApplicationArgs 1
+byte "_status"
+concat
+byte "refunded"
+app_global_put
+txn Sender
+byte "buyer_locked"
+int 0
+app_local_put
+int 1
+return
+main_l13:
+txn Sender
+byte "Admin"
+app_global_get
+==
+assert
+txna ApplicationArgs 1
+byte "_status"
+concat
+app_global_get
+byte ""
+!=
+assert
+txna ApplicationArgs 1
+byte "_status"
+concat
+app_global_get
+byte "locked"
+==
+assert
+txna ApplicationArgs 1
+byte "_status"
+concat
+byte "finalized"
+app_global_put
+int 1
+return
+main_l14:
+txna ApplicationArgs 1
+byte "_status"
+concat
+app_global_get
+byte ""
+!=
+assert
+txna ApplicationArgs 1
+byte "_status"
+concat
+app_global_get
+byte "listed"
+==
+assert
+global LatestTimestamp
+txna ApplicationArgs 1
+byte "_deadline"
+concat
+app_global_get
+<
+assert
+txn Sender
+txna ApplicationArgs 1
+byte "_seller"
+concat
+app_global_get
+!=
+assert
+txna ApplicationArgs 1
+byte "_buyer"
+concat
+txn Sender
+app_global_put
+txna ApplicationArgs 1
+byte "_status"
+concat
+byte "locked"
+app_global_put
+txn Sender
+byte "listing_"
+txna ApplicationArgs 1
+concat
+txna ApplicationArgs 1
+app_local_put
+txn Sender
+byte "buyer_locked"
+int 1
+app_local_put
+int 1
+return
+main_l15:
+txna ApplicationArgs 1
+byte "_status"
+concat
+app_global_get
+byte ""
+!=
+!
+assert
+txna ApplicationArgs 2
+btoi
+int 0
+>
+assert
+txna ApplicationArgs 4
+btoi
+global LatestTimestamp
+>
+assert
+txna ApplicationArgs 1
+byte "_price"
+concat
+txna ApplicationArgs 2
+btoi
+app_global_put
+txna ApplicationArgs 1
+byte "_seller"
+concat
+txna ApplicationArgs 3
+app_global_put
+txna ApplicationArgs 1
+byte "_deadline"
+concat
+txna ApplicationArgs 4
+btoi
+app_global_put
+txna ApplicationArgs 1
+byte "_status"
+concat
+byte "listed"
+app_global_put
+int 1
+return
+main_l16:
+txn Sender
+byte "Admin"
+app_global_get
+==
+assert
+int 1
+return
+main_l17:
+txn Sender
+byte "Admin"
+app_global_get
+==
+assert
+int 1
+return
+main_l18:
+int 1
+return
+main_l19:
+int 1
+return
+main_l20:
+byte "Admin"
+txn Sender
+app_global_put
+int 1
+return

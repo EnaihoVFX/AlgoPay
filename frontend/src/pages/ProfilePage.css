@@ -1,0 +1,346 @@
+.profile-page {
+  min-height: 100vh;
+  background: radial-gradient(ellipse at top, #0f1729 0%, #000000 50%, #000000 100%);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.15), rgba(15, 23, 42, 0.3));
+  backdrop-filter: blur(30px);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.15);
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.profile-header h1 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.spacer {
+  width: 40px;
+}
+
+.profile-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Avatar Section */
+.profile-avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.profile-avatar {
+  margin-bottom: 16px;
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.avatar-gradient {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 8px 32px rgba(59, 130, 246, 0.4),
+    0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.avatar-icon {
+  color: white;
+}
+
+.profile-name {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: white;
+}
+
+.profile-id {
+  font-size: 14px;
+  color: rgba(147, 197, 253, 0.7);
+  margin: 0;
+}
+
+/* Glass Effect */
+.glass {
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.15), rgba(15, 23, 42, 0.3));
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  box-shadow: 
+    0 8px 32px 0 rgba(0, 0, 0, 0.37),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+/* Balance Card */
+.profile-balance-card {
+  text-align: center;
+  animation: slideUp 0.6s ease-out 0.1s backwards;
+}
+
+.balance-label {
+  font-size: 14px;
+  color: rgba(147, 197, 253, 0.7);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.balance-loading {
+  padding: 20px 0;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(59, 130, 246, 0.2);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.balance-amount {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.balance-value {
+  font-size: 36px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.02em;
+}
+
+.balance-currency {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(147, 197, 253, 0.8);
+}
+
+.balance-usd {
+  font-size: 14px;
+  color: rgba(147, 197, 253, 0.6);
+}
+
+/* Profile Sections */
+.profile-section {
+  animation: slideUp 0.6s ease-out 0.2s backwards;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  color: rgba(147, 197, 253, 0.9);
+}
+
+.section-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: white;
+}
+
+/* Address Display */
+.address-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.address-code {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+  color: rgba(147, 197, 253, 0.9);
+  word-break: break-all;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.address-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.icon-btn:active {
+  transform: scale(0.95);
+}
+
+.text-success {
+  color: #4ade80;
+  font-size: 18px;
+}
+
+/* Settings List */
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.setting-item {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  cursor: default;
+  text-align: left;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.setting-item:hover {
+  background: rgba(59, 130, 246, 0.05);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.setting-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.setting-title {
+  font-size: 14px;
+  color: rgba(147, 197, 253, 0.7);
+  font-weight: 500;
+}
+
+.setting-value {
+  font-size: 14px;
+  color: white;
+  font-weight: 500;
+}
+
+/* Profile Actions */
+.profile-actions {
+  margin-top: 32px;
+  animation: slideUp 0.6s ease-out 0.3s backwards;
+}
+
+.btn-secondary {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.2), rgba(15, 23, 42, 0.4));
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.3), rgba(15, 23, 42, 0.5));
+  border-color: rgba(59, 130, 246, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:active {
+  transform: scale(0.98);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .profile-container {
+    padding: 16px;
+  }
+
+  .balance-value {
+    font-size: 28px;
+  }
+
+  .address-display {
+    flex-direction: column;
+  }
+
+  .address-code {
+    width: 100%;
+  }
+}
+

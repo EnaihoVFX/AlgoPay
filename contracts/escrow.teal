@@ -1,0 +1,164 @@
+#pragma version 5
+
+// ============================================================================
+// Escrow LogicSig - Payment Escrow for Marketplace Listings
+// ============================================================================
+//
+// PURPOSE:
+// Holds buyer's payment and releases it only when a valid "finalize" 
+// ApplicationCall is made for the specific listing in an atomic group.
+//
+// USAGE:
+// 1. Compile with listingID: node scripts/compileEscrow.js listing123
+// 2. Fund escrow address
+// 3. Create atomic group with ApplicationCall("finalize", listingID) + Payment
+// 4. Sign payment with LogicSig
+//
+// ============================================================================
+
+// Check transaction is in a group
+global GroupSize
+int 1
+>
+assert
+
+// Store expected listingID
+byte "TMPL_LISTING_ID"
+store 0
+
+// Check transaction 0
+global GroupSize
+int 0
+>
+bz skip_0
+int 0
+gtxns TypeEnum
+int appl
+==
+bnz check_0
+skip_0:
+b try_1
+
+check_0:
+int 0
+gtxns NumAppArgs
+int 2
+>=
+gtxna 0 ApplicationArgs 0
+byte "finalize"
+==
+&&
+gtxna 0 ApplicationArgs 1
+load 0
+==
+&&
+bnz found
+
+try_1:
+// Check transaction 1
+global GroupSize
+int 1
+>
+bz skip_1
+int 1
+gtxns TypeEnum
+int appl
+==
+bnz check_1
+skip_1:
+b try_2
+
+check_1:
+int 1
+gtxns NumAppArgs
+int 2
+>=
+gtxna 1 ApplicationArgs 0
+byte "finalize"
+==
+&&
+gtxna 1 ApplicationArgs 1
+load 0
+==
+&&
+bnz found
+
+try_2:
+// Check transaction 2
+global GroupSize
+int 2
+>
+bz skip_2
+int 2
+gtxns TypeEnum
+int appl
+==
+bnz check_2
+skip_2:
+b try_3
+
+check_2:
+int 2
+gtxns NumAppArgs
+int 2
+>=
+gtxna 2 ApplicationArgs 0
+byte "finalize"
+==
+&&
+gtxna 2 ApplicationArgs 1
+load 0
+==
+&&
+bnz found
+
+try_3:
+// Check transaction 3
+global GroupSize
+int 3
+>
+bz not_found
+int 3
+gtxns TypeEnum
+int appl
+==
+bnz check_3
+b not_found
+
+check_3:
+int 3
+gtxns NumAppArgs
+int 2
+>=
+gtxna 3 ApplicationArgs 0
+byte "finalize"
+==
+&&
+gtxna 3 ApplicationArgs 1
+load 0
+==
+&&
+bnz found
+
+not_found:
+err
+
+found:
+// Security checks
+txn TypeEnum
+int pay
+==
+assert
+
+txn CloseRemainderTo
+global ZeroAddress
+==
+assert
+
+txn RekeyTo
+global ZeroAddress
+==
+assert
+
+int 1
+return
